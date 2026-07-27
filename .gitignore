@@ -1,0 +1,47 @@
+# Dependencias
+node_modules/
+**/node_modules/
+
+# Variables de entorno (contienen credenciales)
+.env
+**/.env
+
+# Builds
+dist/
+build/
+**/dist/
+**/build/
+
+# Logs
+npm-debug.log*
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/# Dependencias
+node_modules/
+**/node_modules/
+
+# Variables de entorno (contienen credenciales)
+.env
+**/.env
+
+# Builds
+dist/
+build/
+**/dist/
+**/build/
+
+# Logs
+npm-debug.log*
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
