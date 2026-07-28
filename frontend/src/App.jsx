@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import Login from './Login';
+import Swal from 'sweetalert2';
 
 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
@@ -27,6 +28,7 @@ function App() {
   const [feedback, setFeedback] = useState({ message: '', type: 'success' });
   const [selectedLoteId, setSelectedLoteId] = useState(null);
   const [selectedMaquinaId, setSelectedMaquinaId] = useState(null);
+  const [editingMovimiento, setEditingMovimiento] = useState(null);
 
   const fetchJson = async (url, options = {}) => {
     const headers = {
@@ -133,16 +135,26 @@ function App() {
   };
 
   const pagarCuota = async (cuotaId) => {
-    if (!window.confirm('¿Deseas marcar esta cuota como pagada?')) return;
+    const resultado = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'Se marcará la cuota como pagada.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, confirmar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#1a3d7c',
+      cancelButtonColor: '#6c757d'
+    });
+    if (!resultado.isConfirmed) return;
 
     try {
       await fetchJson(`${apiUrl}/api/cuotas/${cuotaId}/pagar`, { method: 'PUT' });
       const data = await fetchJson(`${apiUrl}/api/lotes/${selectedLote.lote.id}`);
       setSelectedLote(data);
       await loadData();
-      setFeedback({ message: 'Cuota marcada como pagada correctamente.', type: 'success' });
+      await Swal.fire({ icon: 'success', title: 'Cuota pagada', text: 'La cuota fue marcada como pagada.' });
     } catch (error) {
-      setFeedback({ message: error.message || 'No se pudo actualizar la cuota.', type: 'error' });
+      await Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'No se pudo actualizar la cuota.' });
     }
   };
 
@@ -150,24 +162,89 @@ function App() {
     const data = await fetchJson(`${apiUrl}/api/maquinas/${maquina.id}`);
     setSelectedMaquina(data);
     setSelectedMaquinaId(maquina.id);
+    setEditingMovimiento(null);
+    setForm({ latitud: '', longitud: '', direccion_referencia: '', motivo: '' });
   };
 
-  const registrarMovimiento = async (maquinaId) => {
-    if (!window.confirm('¿Deseas guardar esta ubicación para la máquina?')) return;
+  const closeMaquinaModal = () => {
+    setSelectedMaquina(null);
+    setSelectedMaquinaId(null);
+    setEditingMovimiento(null);
+    setForm({ latitud: '', longitud: '', direccion_referencia: '', motivo: '' });
+  };
 
+  const saveUbicacion = async (maquinaId) => {
     try {
-      const nuevaUbicacion = await fetchJson(`${apiUrl}/api/maquinas/${maquinaId}/ubicacion`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, latitud: Number(form.latitud), longitud: Number(form.longitud) })
-      });
+      const payload = {
+        latitud: Number(form.latitud),
+        longitud: Number(form.longitud),
+        direccion_referencia: form.direccion_referencia,
+        motivo: form.motivo
+      };
+
+      if (editingMovimiento) {
+        await fetchJson(`${apiUrl}/api/maquinas/${maquinaId}/ubicacion/${editingMovimiento.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        await Swal.fire({ icon: 'success', title: 'Actualizado', text: 'Movimiento actualizado correctamente.' });
+      } else {
+        await fetchJson(`${apiUrl}/api/maquinas/${maquinaId}/ubicacion`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        await Swal.fire({ icon: 'success', title: 'Guardado', text: 'Ubicación guardada correctamente.' });
+      }
+
+      setEditingMovimiento(null);
       setForm({ latitud: '', longitud: '', direccion_referencia: '', motivo: '' });
       const maquinaData = await fetchJson(`${apiUrl}/api/maquinas/${maquinaId}`);
-      setSelectedMaquina({ ...maquinaData, historial: [nuevaUbicacion, ...(maquinaData.historial || [])] });
+      setSelectedMaquina(maquinaData);
       await loadData();
-      setFeedback({ message: 'Ubicación guardada correctamente.', type: 'success' });
     } catch (error) {
-      setFeedback({ message: error.message || 'No se pudo guardar la ubicación.', type: 'error' });
+      await Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'No se pudo guardar la ubicación.' });
+    }
+  };
+
+  const editMovimiento = (movimiento) => {
+    setEditingMovimiento(movimiento);
+    setForm({
+      latitud: movimiento.latitud,
+      longitud: movimiento.longitud,
+      direccion_referencia: movimiento.direccion_referencia,
+      motivo: movimiento.motivo
+    });
+  };
+
+  const deleteMovimiento = async (maquinaId, ubicacionId) => {
+    const resultado = await Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'Se eliminará este movimiento permanentemente.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, confirmar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#1a3d7c',
+      cancelButtonColor: '#6c757d'
+    });
+    if (!resultado.isConfirmed) return;
+
+    try {
+      await fetchJson(`${apiUrl}/api/maquinas/${maquinaId}/ubicacion/${ubicacionId}`, {
+        method: 'DELETE'
+      });
+      if (editingMovimiento?.id === ubicacionId) {
+        setEditingMovimiento(null);
+        setForm({ latitud: '', longitud: '', direccion_referencia: '', motivo: '' });
+      }
+      const maquinaData = await fetchJson(`${apiUrl}/api/maquinas/${maquinaId}`);
+      setSelectedMaquina(maquinaData);
+      await loadData();
+      await Swal.fire({ icon: 'success', title: 'Eliminado', text: 'El movimiento fue eliminado correctamente.' });
+    } catch (error) {
+      await Swal.fire({ icon: 'error', title: 'Error', text: error.message || 'No se pudo eliminar el movimiento.' });
     }
   };
 
@@ -259,6 +336,7 @@ function App() {
               </select>
             </div>
 
+            <div className="table-wrap">
             <table>
               <thead>
                 <tr>
@@ -294,6 +372,7 @@ function App() {
                 ))}
               </tbody>
             </table>
+            </div>
 
             {selectedLote && (
               <div className="panel">
@@ -321,6 +400,7 @@ function App() {
               <h2>Operaciones Móviles (Emana)</h2>
             </div>
 
+            <div className="table-wrap">
             <table>
               <thead>
                 <tr>
@@ -343,28 +423,45 @@ function App() {
                 ))}
               </tbody>
             </table>
-
-            {selectedMaquina && (
-              <div className="panel">
-                <h3>{selectedMaquina.maquina?.nombre}</h3>
-                <div className="form-grid">
-                  <input placeholder="Latitud" value={form.latitud} onChange={(e) => setForm({ ...form, latitud: e.target.value })} />
-                  <input placeholder="Longitud" value={form.longitud} onChange={(e) => setForm({ ...form, longitud: e.target.value })} />
-                  <input placeholder="Dirección de referencia" value={form.direccion_referencia} onChange={(e) => setForm({ ...form, direccion_referencia: e.target.value })} />
-                  <input placeholder="Motivo" value={form.motivo} onChange={(e) => setForm({ ...form, motivo: e.target.value })} />
-                  <button onClick={() => registrarMovimiento(selectedMaquina.maquina?.id)}>Guardar ubicación</button>
-                </div>
-                <div className="timeline">
-                  {selectedMaquina.historial?.map((item) => (
-                    <div key={item.id} className="timeline-item">
-                      <strong>{item.motivo}</strong>
-                      <p>{item.direccion_referencia} · {new Date(item.fecha_movimiento).toLocaleString()}</p>
-                    </div>
-                  ))}
+            </div>
+          </section>
+        )}
+        
+        {selectedMaquina && view === 'maquinas' && (
+          <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && closeMaquinaModal()}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <button className="modal-close" onClick={closeMaquinaModal}>×</button>
+              <h3>{selectedMaquina.maquina?.nombre}</h3>
+              <div className="form-grid">
+                <input placeholder="Latitud" value={form.latitud} onChange={(e) => setForm({ ...form, latitud: e.target.value })} />
+                <input placeholder="Longitud" value={form.longitud} onChange={(e) => setForm({ ...form, longitud: e.target.value })} />
+                <input placeholder="Dirección de referencia" value={form.direccion_referencia} onChange={(e) => setForm({ ...form, direccion_referencia: e.target.value })} />
+                <input placeholder="Motivo" value={form.motivo} onChange={(e) => setForm({ ...form, motivo: e.target.value })} />
+                <div className="modal-actions">
+                  <button onClick={() => saveUbicacion(selectedMaquina.maquina?.id)}>{editingMovimiento ? 'Guardar cambios' : 'Guardar ubicación'}</button>
+                  {editingMovimiento && <button type="button" className="secondary-button" onClick={() => {
+                    setEditingMovimiento(null);
+                    setForm({ latitud: '', longitud: '', direccion_referencia: '', motivo: '' });
+                  }}>Cancelar</button>}
                 </div>
               </div>
-            )}
-          </section>
+              <div className="timeline">
+                {selectedMaquina.historial?.map((item) => (
+                  <div key={item.id} className="timeline-item">
+                    <div>
+                      <strong>{item.motivo}</strong>
+                      <p>{item.direccion_referencia} · {new Date(item.fecha_movimiento).toLocaleString()}</p>
+                      <p>Lat: {item.latitud}, Lon: {item.longitud}</p>
+                    </div>
+                    <div className="timeline-item-actions">
+                      <button className="secondary-button" onClick={() => editMovimiento(item)}>Editar</button>
+                      <button className="secondary-button danger-button" onClick={() => deleteMovimiento(selectedMaquina.maquina?.id, item.id)}>Eliminar</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         )}
       </main>
     </div>

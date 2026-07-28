@@ -54,6 +54,39 @@ th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
 .progress-fill { background: #1a3d7c; height: 100%; border-radius: 999px; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(180px, 1fr)); gap: 12px; }
 .timeline { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
-.timeline-item { border-left: 3px solid #1a3d7c; padding-left: 12px; }
+.timeline-item { border-left: 3px solid #1a3d7c; padding-left: 12px; display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; background: #f8fafc; padding: 14px; border-radius: 10px; }
+.timeline-item-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.secondary-button { background: #e2e8f0; color: #102a43; border: 1px solid transparent; }
+.secondary-button:hover { background: #dbeafe; }
+.danger-button { background: #fee2e2; color: #b91c1c; }
+.danger-button:hover { background: #fecaca; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); display: flex; justify-content: center; align-items: center; padding: 24px; z-index: 1000; }
+.modal-content { width: min(980px, 100%); max-height: 90vh; overflow-y: auto; background: white; border-radius: 16px; padding: 24px; position: relative; box-shadow: 0 30px 80px rgba(15, 23, 42, 0.18); }
+.modal-close { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border: none; background: #f8fafc; border-radius: 50%; cursor: pointer; font-size: 20px; line-height: 1; }
 .cuotas-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
 .cuota-item { display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; padding: 10px; border-radius: 8px; }
+
+/* New: modal action spacing */
+.modal-actions { display: flex; gap: 12px; align-items: center; }
+
+/* Table wrapper for responsive horizontal scroll */
+.table-wrap { overflow-x: auto; }
+.table-wrap table { min-width: 640px; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-shell { flex-direction: column; }
+  .sidebar { width: 100%; display: flex; flex-direction: row; gap: 8px; padding: 12px; align-items: center; overflow-x: auto; }
+  .sidebar button { display: inline-block; flex: 0 0 auto; }
+  .main-content { padding: 16px; padding-top: 80px; }
+  .modal-content { width: 95vw; max-height: 92vh; padding: 16px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .login-panel { margin: 40px 16px; width: auto; }
+}
+
+@media (max-width: 480px) {
+  .sidebar { padding: 8px; }
+  .modal-content { padding: 12px; }
+  .login-panel { margin: 24px 12px; }
+}
