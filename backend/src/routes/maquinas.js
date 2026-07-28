@@ -75,4 +75,47 @@ router.post('/:id/ubicacion', async (req, res, next) => {
   }
 });
 
+router.put('/:maquinaId/ubicacion/:ubicacionId', async (req, res, next) => {
+  try {
+    const { maquinaId, ubicacionId } = req.params;
+    const { latitud, longitud, direccion_referencia, motivo } = req.body;
+    const result = await pool.query(`
+      UPDATE ubicaciones_maquina
+      SET latitud = $1,
+          longitud = $2,
+          direccion_referencia = $3,
+          motivo = $4
+      WHERE maquina_id = $5 AND id = $6
+      RETURNING *
+    `, [latitud, longitud, direccion_referencia, motivo, maquinaId, ubicacionId]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Ubicación no encontrada' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete('/:maquinaId/ubicacion/:ubicacionId', async (req, res, next) => {
+  try {
+    const { maquinaId, ubicacionId } = req.params;
+    const result = await pool.query(`
+      DELETE FROM ubicaciones_maquina
+      WHERE maquina_id = $1 AND id = $2
+      RETURNING *
+    `, [maquinaId, ubicacionId]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Ubicación no encontrada' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;
