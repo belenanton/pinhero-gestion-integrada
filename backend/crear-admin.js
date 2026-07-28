@@ -3,13 +3,13 @@ const pool = require('./src/db');
 
 (async () => {
   try {
-    const password = 'admin1234'; // Cambia esta contraseña antes de usar en producción
+    const password = 'xT9!qR4vLm2$Kp'; 
     const passwordHash = await bcrypt.hash(password, 10);
 
     await pool.query(
       `INSERT INTO usuarios (email, password_hash, rol)
        VALUES ($1, $2, $3)
-       ON CONFLICT (email) DO NOTHING`,
+       ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash`,
       ['admin@pinhero.com', passwordHash, 'admin']
     );
 
