@@ -11,6 +11,18 @@ button, input, select { font: inherit; }
 .app-shell { display: flex; min-height: 100vh; }
 .sidebar { width: 260px; background: #1a3d7c; color: white; padding: 24px; }
 .sidebar h1 { margin-bottom: 8px; }
+.login-panel { max-width: 420px; margin: 120px auto; padding: 32px; background: white; border-radius: 20px; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.1); }
+.login-panel h2 { margin-bottom: 20px; }
+.login-form { display: grid; gap: 16px; }
+.login-form label { display: flex; flex-direction: column; gap: 8px; color: #334155; font-weight: 600; }
+.login-form input { width: 100%; border: 1px solid #cbd5e1; background: #f8fafc; }
+.login-form button { width: 100%; }
+.form-error { color: #b91c1c; margin: 0; font-size: 0.95rem; }
+.logout-button { margin-top: 16px; background: #f97316; }
+
+.app-shell { display: flex; min-height: 100vh; }
+.sidebar { width: 260px; background: #1a3d7c; color: white; padding: 24px; }
+.sidebar h1 { margin-bottom: 8px; }
 .sidebar button { display: block; width: 100%; margin-top: 12px; padding: 10px; border: none; border-radius: 8px; cursor: pointer; }
 .sidebar .active { background: #dfeeff; color: #1a3d7c; }
 .main-content { flex: 1; padding: 24px; }
@@ -21,13 +33,22 @@ button { background: #1a3d7c; color: white; cursor: pointer; }
 button:hover { opacity: 0.9; }
 table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
 th, td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
-tr:hover { background: #f8fafc; }
+.clickable-row { cursor: pointer; transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
+.clickable-row:hover { background: #f8fafc; transform: translateY(-1px); }
+.clickable-row.is-selected { background: #e0f2fe; box-shadow: inset 0 0 0 1px #38bdf8; }
+.status-action { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 999px; background: white; color: #102a43; cursor: pointer; }
+.status-action:hover { background: #f8fafc; }
+.status-action--disabled { cursor: default; opacity: 0.8; }
 .badge { padding: 4px 8px; border-radius: 999px; text-transform: capitalize; }
 .badge.success { background: #dcfce7; color: #166534; }
 .badge.warning { background: #fef3c7; color: #92400e; }
 .badge.danger { background: #fee2e2; color: #b91c1c; }
 .badge.neutral { background: #e2e8f0; color: #334155; }
 .panel { margin-top: 16px; background: white; padding: 16px; border-radius: 12px; }
+.toast-banner { position: fixed; top: 20px; right: 20px; z-index: 1000; padding: 12px 16px; border-radius: 10px; font-weight: 600; box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15); animation: slide-in 0.2s ease-out; }
+.toast-banner.success { background: #dcfce7; color: #166534; }
+.toast-banner.error { background: #fee2e2; color: #b91c1c; }
+@keyframes slide-in { from { transform: translateY(-8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .progress-bar { width: 100%; background: #e2e8f0; border-radius: 999px; height: 10px; margin-top: 8px; }
 .progress-fill { background: #1a3d7c; height: 100%; border-radius: 999px; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(180px, 1fr)); gap: 12px; }

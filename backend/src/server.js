@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const pool = require('./db');
+const { verificarToken } = require('./middleware/auth');
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -8,9 +9,10 @@ const port = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
-app.use('/api/lotes', require('./routes/lotes'));
-app.use('/api/cuotas', require('./routes/cuotas'));
-app.use('/api/maquinas', require('./routes/maquinas'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/lotes', verificarToken, require('./routes/lotes'));
+app.use('/api/cuotas', verificarToken, require('./routes/cuotas'));
+app.use('/api/maquinas', verificarToken, require('./routes/maquinas'));
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(err.status || 500).json({ error: err.message || 'Error interno del servidor' });
