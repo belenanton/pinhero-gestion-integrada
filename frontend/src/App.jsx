@@ -15,7 +15,7 @@ const statusColors = {
 const formatStatus = (value) => value?.replace(/_/g, ' ');
 
 function App() {
-  const [view, setView] = useState('lotes');
+  const [view, setView] = useState('dashboard');
   const [token, setToken] = useState(null);
   const [lotes, setLotes] = useState([]);
   const [maquinas, setMaquinas] = useState([]);
@@ -90,6 +90,31 @@ function App() {
     });
   }, [lotes, filtroUnidad, filtroEstado]);
 
+  const dashboardMetrics = useMemo(() => {
+    const totalLotes = lotes.length;
+    const disponibles = lotes.filter((lote) => lote.estado === 'disponible').length;
+    const reservados = lotes.filter((lote) => lote.estado === 'reservado').length;
+    const vendidos = lotes.filter((lote) => lote.estado === 'vendido').length;
+    const montoFacturado = lotes
+      .filter((lote) => lote.estado === 'vendido')
+      .reduce((sum, lote) => sum + Number(lote.precio || 0), 0);
+
+    const totalMaquinas = maquinas.length;
+    const operativas = maquinas.filter((maquina) => maquina.estado_operativo === 'operativa').length;
+    const mantenimiento = maquinas.filter((maquina) => maquina.estado_operativo === 'mantenimiento').length;
+
+    const porUnidad = ['U360', 'GrupoPinhero'].map((unidad) => {
+      const unidadLotes = lotes.filter((lote) => lote.unidad_negocio === unidad);
+      return {
+        unidad,
+        vendidos: unidadLotes.filter((lote) => lote.estado === 'vendido').length,
+        disponibles: unidadLotes.filter((lote) => lote.estado === 'disponible').length
+      };
+    });
+
+    return { totalLotes, disponibles, reservados, vendidos, montoFacturado, totalMaquinas, operativas, mantenimiento, porUnidad };
+  }, [lotes, maquinas]);
+
   if (!token) {
     return (
       <div className="app-shell">
@@ -151,6 +176,7 @@ function App() {
       <aside className="sidebar">
         <h1>Gestión Integrada</h1>
         <p>Grupo Piñhero</p>
+        <button className={view === 'dashboard' ? 'active' : ''} onClick={() => setView('dashboard')}>Dashboard</button>
         <button className={view === 'lotes' ? 'active' : ''} onClick={() => setView('lotes')}>Loteos y Financiación</button>
         <button className={view === 'maquinas' ? 'active' : ''} onClick={() => setView('maquinas')}>Operaciones Móviles</button>
         <button className="logout-button" onClick={handleLogout}>Cerrar sesión</button>
@@ -160,7 +186,60 @@ function App() {
         {feedback.message && (
           <div className={`toast-banner ${feedback.type}`}>{feedback.message}</div>
         )}
-        {view === 'lotes' ? (
+        {view === 'dashboard' ? (
+          <section>
+            <div className="section-header">
+              <h2>Dashboard consolidado</h2>
+            </div>
+            <div className="dashboard-grid">
+              <div className="panel">
+                <h3>Total de lotes</h3>
+                <p>{dashboardMetrics.totalLotes}</p>
+              </div>
+              <div className="panel">
+                <h3>Vendidos</h3>
+                <p>{dashboardMetrics.vendidos}</p>
+              </div>
+              <div className="panel">
+                <h3>Disponibles</h3>
+                <p>{dashboardMetrics.disponibles}</p>
+              </div>
+              <div className="panel">
+                <h3>Monto facturado</h3>
+                <p>${dashboardMetrics.montoFacturado.toLocaleString()}</p>
+              </div>
+              <div className="panel">
+                <h3>Total de máquinas</h3>
+                <p>{dashboardMetrics.totalMaquinas}</p>
+              </div>
+              <div className="panel">
+                <h3>Máquinas en mantenimiento</h3>
+                <p>{dashboardMetrics.mantenimiento}</p>
+              </div>
+            </div>
+            <div className="panel">
+              <h3>Desglose por unidad de negocio</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Unidad</th>
+                    <th>Vendidos</th>
+                    <th>Disponibles</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dashboardMetrics.porUnidad.map((unidad) => (
+                    <tr key={unidad.unidad}>
+                      <td>{unidad.unidad}</td>
+                      <td>{unidad.vendidos}</td>
+                      <td>{unidad.disponibles}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        ) : view === 'lotes' ? (
           <section>
             <div className="section-header">
               <h2>Loteos y Financiación</h2>
