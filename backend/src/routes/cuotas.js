@@ -11,6 +11,7 @@ router.put('/:id/pagar', async (req, res, next) => {
     }
 
     const cuota = cuotaRes.rows[0];
+    // La cuota solo puede pasar a pagada una vez para evitar registrar el mismo pago más de una vez.
     if (cuota.estado === 'pagada') {
       return res.status(400).json({ error: 'La cuota ya está pagada' });
     }

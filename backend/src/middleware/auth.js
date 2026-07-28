@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 
 const verificarToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
+  // El backend espera el formato Bearer porque el token se envía como parte del header de autorización estándar.
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Token no provisto' });
   }

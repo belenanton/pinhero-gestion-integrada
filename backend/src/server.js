@@ -6,6 +6,7 @@ const { verificarToken } = require('./middleware/auth');
 const app = express();
 const port = process.env.PORT || 4000;
 
+// Las rutas de negocio requieren autenticación para evitar exponer operaciones sensibles sin validación previa.
 app.use(cors());
 app.use(express.json());
 app.get('/health', (req, res) => res.json({ status: 'ok' }));

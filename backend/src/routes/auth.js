@@ -23,6 +23,7 @@ router.post('/login', async (req, res, next) => {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
+    // El token incluye el identificador y el rol del usuario para que las rutas protegidas puedan autorizar acciones sin consultar la base de datos en cada request.
     const payload = { id: user.id, email: user.email, rol: user.rol };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' });
 

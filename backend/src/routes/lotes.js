@@ -40,6 +40,7 @@ router.get('/:id', async (req, res, next) => {
     }
 
     const lote = loteRes.rows[0];
+    // Solo los lotes vendidos tienen información financiera asociada, por lo que el detalle adicional se expone solo en ese caso.
     if (lote.estado !== 'vendido') {
       return res.json({ lote });
     }
@@ -113,6 +114,7 @@ router.put('/:id/vender', async (req, res, next) => {
     }
 
     if (loteRes.rows[0].estado === 'vendido') {
+      // Se evita vender dos veces el mismo lote para mantener la consistencia del estado del negocio.
       return res.status(400).json({ error: 'No se puede vender un lote ya vendido' });
     }
 
@@ -122,6 +124,7 @@ router.put('/:id/vender', async (req, res, next) => {
 
     const client = await pool.connect();
     try {
+      // La venta crea la financiación, las cuotas y cambia el estado del lote; todo debe ejecutarse en una transacción para evitar estados inconsistentes si falla una parte.
       await client.query('BEGIN');
       const financingResult = await client.query(`
         INSERT INTO financiaciones (lote_id, cliente_id, metodo, monto_total, cantidad_cuotas_total, fecha_inicio)
@@ -130,6 +133,7 @@ router.put('/:id/vender', async (req, res, next) => {
       `, [id, cliente_id, metodo, monto_total, cantidad_cuotas]);
 
       const financiacionId = financingResult.rows[0].id;
+      // El monto de cada cuota se reparte de manera uniforme sobre el total de la financiación para mantener un cronograma simple y predecible.
       const cuotaMonto = Number(monto_total) / Number(cantidad_cuotas);
       const cuotas = [];
       for (let i = 1; i <= cantidad_cuotas; i += 1) {
@@ -144,6 +148,7 @@ router.put('/:id/vender', async (req, res, next) => {
       await client.query('COMMIT');
       res.json({ success: true, message: 'Lote vendido correctamente' });
     } catch (error) {
+      // Si falla la creación de cuotas o la actualización del lote, se revierte la transacción para no dejar un lote vendido sin su financiación asociada.
       await client.query('ROLLBACK');
       throw error;
     } finally {

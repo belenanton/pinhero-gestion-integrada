@@ -37,6 +37,7 @@ function App() {
     };
 
     if (token) {
+      // Las peticiones autenticadas envían el JWT con el esquema Bearer porque el middleware del backend valida ese formato en el header Authorization.
       headers.Authorization = `Bearer ${token}`;
     }
 
@@ -97,6 +98,7 @@ function App() {
     const disponibles = lotes.filter((lote) => lote.estado === 'disponible').length;
     const reservados = lotes.filter((lote) => lote.estado === 'reservado').length;
     const vendidos = lotes.filter((lote) => lote.estado === 'vendido').length;
+    // El monto facturado se deriva del precio de los lotes vendidos como aproximación del negocio realizado.
     const montoFacturado = lotes
       .filter((lote) => lote.estado === 'vendido')
       .reduce((sum, lote) => sum + Number(lote.precio || 0), 0);

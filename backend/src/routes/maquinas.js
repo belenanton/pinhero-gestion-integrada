@@ -4,6 +4,7 @@ const pool = require('../db');
 
 router.get('/', async (req, res, next) => {
   try {
+    // Se usa un LATERAL JOIN para traer la última ubicación de cada máquina sin perder la información base de la máquina.
     const result = await pool.query(`
       SELECT m.*, u.latitud, u.longitud, u.direccion_referencia, u.motivo, u.fecha_movimiento
       FROM maquinas m

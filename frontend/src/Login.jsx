@@ -25,6 +25,7 @@ function Login({ onLoginSuccess }) {
         return;
       }
 
+      // El padre guarda el token recibido para usarlo en las llamadas autenticadas a la API.
       onLoginSuccess(data);
     } catch (err) {
       setError('No se pudo conectar con el servidor');
